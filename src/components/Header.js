@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, useScroll } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -33,8 +34,12 @@ const socials = [
 ];
 
 const Header = () => {
-  const handleClick = (anchor) => () => {
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+  const handleClick = (anchor) => {
+    // alert(anchor);
     const id = `${anchor}-section`;
+    console.log(id);
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({
@@ -43,35 +48,73 @@ const Header = () => {
       });
     }
   };
+  function update() {
+    if (scrollY?.current < scrollY?.prev) {
+      setHidden(false);
+    } else if (scrollY?.current > 100 && scrollY?.current > scrollY?.prev) {
+      setHidden(true);
+    }
+  }
+  useEffect(() => {
+    return scrollY.onChange(() => update());
+  });
+  const variants = {
+    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: -25 },
+  };
 
   return (
-    <Box
-      position="fixed"
-      top={0}
-      left={0}
-      right={0}
-      translateY={0}
-      transitionProperty="transform"
-      transitionDuration=".3s"
-      transitionTimingFunction="ease-in-out"
-      backgroundColor="#18181b"
+    <motion.nav
+      variants={variants}
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ ease: [0.1, 0.25, 0.3, 1], duration: 0.3 }}
     >
-      <Box color="white" maxWidth="1280px" margin="0 auto">
-        <HStack
-          px={16}
-          py={4}
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <nav>{/* Add social media links based on the `socials` data */}</nav>
-          <nav>
-            <HStack spacing={8}>
-              {/* Add links to Projects and Contact me section */}
-            </HStack>
-          </nav>
-        </HStack>
+      <Box
+        id="navbar"
+        position="fixed"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={100}
+        translateY={0}
+        transitionProperty="transform"
+        transitionDuration=".3s"
+        transitionTimingFunction="ease-in-out"
+        backgroundColor="#18181b"
+      >
+        <Box color="white" maxWidth="1280px" margin="0 auto">
+          <HStack
+            px={16}
+            py={4}
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <nav>
+              {socials.map((social) => (
+                <a
+                  href={social.url}
+                  style={{
+                    marginLeft: "1rem",
+                  }}
+                >
+                  <FontAwesomeIcon icon={social.icon} size="2x" />
+                </a>
+              ))}
+            </nav>
+            <nav>
+              <HStack spacing={8}>
+                <a href="/#projects" onClick={() => handleClick("projects")}>
+                  Projects
+                </a>
+                <a href="#contact-me" onClick={() => handleClick("contactme")}>
+                  Contact Me
+                </a>
+              </HStack>
+            </nav>
+          </HStack>
+        </Box>
       </Box>
-    </Box>
+    </motion.nav>
   );
 };
 export default Header;
